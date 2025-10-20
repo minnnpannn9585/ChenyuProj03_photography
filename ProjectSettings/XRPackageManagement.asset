@@ -1,0 +1,12 @@
+{
+    "m_Settings": [
+        {
+            "type": "Unity.XR.OpenXR.Settings.OpenXRPackageSettings, Unity.XR.OpenXR",
+            "data": {
+                "m_EnableLoader": true,
+                "m_AutomaticSorting": true,
+                "m_AutomaticEnabled": true
+            }
+        }
+    ]
+}

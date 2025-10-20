@@ -1,0 +1,18 @@
+{
+    "m_Settings": {
+        "Keys": [
+            "com.unity.openxr.feature.runtime",
+            "com.unity.openxr.feature.interaction",
+            "com.unity.openxr.feature.handtracking",
+            "com.unity.openxr.feature.aimpose",
+            "com.unity.openxr.feature.passthrough"
+        ],
+        "Values": [
+            "True",
+            "True",
+            "True",
+            "True",
+            "False"
+        ]
+    }
+}
