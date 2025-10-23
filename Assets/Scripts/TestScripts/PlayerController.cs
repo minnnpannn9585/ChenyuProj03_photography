@@ -1,59 +1,51 @@
 using UnityEngine;
 
+[RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
-    [Header("移动设置")]
-    public float moveSpeed = 5.0f;
+    public float moveSpeed = 5f;
+    public float mouseSensitivity = 3f;
+    public CameraController cameraController;  // 拍照控制脚本
 
-    [Header("视角设置")]
-    public float mouseSensitivity = 2.0f;
-    public float verticalLookLimit = 85.0f;
-
-    [Header("相机引用")]
-    public Transform cameraMount; // 玩家视角/主相机
-    public PhotoCamera photoCamera; // 引用 PhotoCamera 脚本
-
-    private float rotationX = 0;
+    private CharacterController controller;
+    private float yaw;    // 水平旋转角度（绕Y轴）
+    private float pitch;  // 垂直旋转角度（绕X轴）
 
     void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-        if (photoCamera == null)
-        {
-            Debug.LogError("未找到 PhotoCamera 脚本引用!");
-        }
+        controller = GetComponent<CharacterController>();
+        // Cursor.lockState = CursorLockMode.Locked;
+        // Cursor.visible = false;
+
+        // 初始化角度为当前朝向
+        yaw = transform.localEulerAngles.y;
+        pitch = transform.localEulerAngles.x;
     }
 
     void Update()
     {
-        HandleMovement();
-        HandleLook();
-        
-        // 只在右键按下时才处理参数显示和拍照
-        if (Input.GetMouseButton(1))
-        {
-            // 拍照脚本中会处理左键拍照逻辑
-        }
-    }
+        // 移动
+        float h = Input.GetAxis("Horizontal");
+        float v = Input.GetAxis("Vertical");
+        Vector3 moveDir = transform.forward * v + transform.right * h;
+        controller.Move(moveDir * moveSpeed * Time.deltaTime);
 
-    void HandleMovement()
-    {
-        float x = Input.GetAxis("Horizontal");
-        float z = Input.GetAxis("Vertical");
-        Vector3 move = transform.right * x + transform.forward * z;
-        transform.position += move * moveSpeed * Time.deltaTime;
-    }
-
-    void HandleLook()
-    {
+        // 读取鼠标输入
         float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
         float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
 
-        transform.Rotate(Vector3.up * mouseX);
+        // 累加旋转角度
+        yaw   += mouseX;
+        pitch -= mouseY;
+        pitch = Mathf.Clamp(pitch, -80f, 80f);  // 限制俯仰范围
 
-        rotationX -= mouseY;
-        rotationX = Mathf.Clamp(rotationX, -verticalLookLimit, verticalLookLimit);
-        cameraMount.localRotation = Quaternion.Euler(rotationX, 0, 0);
+        // 应用旋转：注意使用 Quaternion 防止欧拉角累积问题
+        transform.localRotation = Quaternion.Euler(pitch, yaw, 0f);
+
+        // 鼠标左键拍照
+        if (Input.GetMouseButtonDown(1) && cameraController != null)
+        {
+            cameraController.CapturePhoto();
+        }
     }
 }
