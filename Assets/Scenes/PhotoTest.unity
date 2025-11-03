@@ -1075,6 +1075,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1850653754}
     m_Modifications:
+    - target: {fileID: 423366839357452103, guid: fef0b163b69a046399fccc2f514e8876,
+        type: 3}
+      propertyPath: m_Transition
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1517723910308223540, guid: fef0b163b69a046399fccc2f514e8876,
         type: 3}
       propertyPath: m_Name
@@ -1469,6 +1474,93 @@ MonoBehaviour:
   m_CameraFloorOffsetObject: {fileID: 2038742721}
   m_RequestedTrackingOriginMode: 2
   m_CameraYOffset: 1.1176
+--- !u!1 &1715212390
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1715212393}
+  - component: {fileID: 1715212392}
+  - component: {fileID: 1715212391}
+  m_Layer: 0
+  m_Name: InputManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1715212391
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1715212390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4f629713d46f4ab68532db1d338cf34, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mainMenuSceneName: MainMenuTest
+  photoSceneName: PhotoTest
+  museumSceneName: MuseumTest
+  menuHoldDuration: 3
+  returnProgressImage: {fileID: 0}
+  vrRigPrefab: {fileID: 1540684925}
+--- !u!114 &1715212392
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1715212390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c70ada21decd4e10b31bfdfb4a3cee9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  xrOrigin: {fileID: 0}
+  enableDebugLogs: 1
+  leftGrabAction: {fileID: 9176202654923993709, guid: 8a96461cc4f7a481394fa901e15c90e1,
+    type: 3}
+  rightGrabAction: {fileID: -2717257761919893079, guid: 8a96461cc4f7a481394fa901e15c90e1,
+    type: 3}
+  leftTriggerAction: {fileID: 9143852837642106753, guid: 8a96461cc4f7a481394fa901e15c90e1,
+    type: 3}
+  rightTriggerAction: {fileID: 7830976598678157005, guid: 8a96461cc4f7a481394fa901e15c90e1,
+    type: 3}
+  aButtonAction: {fileID: 8913028009165485395, guid: 8a96461cc4f7a481394fa901e15c90e1,
+    type: 3}
+  bButtonAction: {fileID: 4486892943095894208, guid: 8a96461cc4f7a481394fa901e15c90e1,
+    type: 3}
+  xButtonAction: {fileID: -780339784732253333, guid: 8a96461cc4f7a481394fa901e15c90e1,
+    type: 3}
+  yButtonAction: {fileID: 6547951646273320912, guid: 8a96461cc4f7a481394fa901e15c90e1,
+    type: 3}
+  menuButtonAction: {fileID: 6220342177193044965, guid: 8a96461cc4f7a481394fa901e15c90e1,
+    type: 3}
+  leftThumbstickAction: {fileID: -3037173076364341468, guid: 8a96461cc4f7a481394fa901e15c90e1,
+    type: 3}
+  rightThumbstickAction: {fileID: -328139007686306123, guid: 8a96461cc4f7a481394fa901e15c90e1,
+    type: 3}
+--- !u!4 &1715212393
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1715212390}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.10450825, y: 0.9438652, z: 4.2692275}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1771162031
 GameObject:
   m_ObjectHideFlags: 0
@@ -2668,3 +2760,4 @@ SceneRoots:
   - {fileID: 1540684926}
   - {fileID: 1850653754}
   - {fileID: 1802168175}
+  - {fileID: 1715212393}

@@ -207,11 +207,50 @@ public class VRSceneManager : MonoBehaviour
     /// <summary>
     /// 加载博物馆场景
     /// </summary>
-    public void LoadMuseumScene()
+    public void LoadMainMenu()
     {
+        Debug.Log($"[VRSceneManager] 加载主菜单场景: {mainMenuSceneName}");
+        
         if (isTransitioning)
         {
-            Debug.LogWarning("场景切换中，忽略加载请求");
+            Debug.LogWarning("[VRSceneManager] 正在场景切换中，忽略请求");
+            return;
+        }
+        
+        StartCoroutine(LoadSceneAsync(mainMenuSceneName));
+    }
+
+    /// <summary>
+    /// 异步加载场景的协程
+    /// </summary>
+    private IEnumerator LoadSceneAsync(string sceneName)
+    {
+        if (isTransitioning)
+            yield break;
+
+        isTransitioning = true;
+
+        // 可以在这里添加淡出效果
+        yield return new WaitForSeconds(0.1f);
+
+        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
+
+        while (!asyncLoad.isDone)
+        {
+            yield return null;
+        }
+
+        isTransitioning = false;
+        Debug.Log("场景加载完成: " + sceneName);
+    }
+
+    public void LoadMuseumScene()
+    {
+        Debug.Log($"[VRSceneManager] 加载博物馆场景: {museumSceneName}");
+
+        if (isTransitioning)
+        {
+            Debug.LogWarning("[VRSceneManager] 正在场景切换中，忽略请求");
             return;
         }
 

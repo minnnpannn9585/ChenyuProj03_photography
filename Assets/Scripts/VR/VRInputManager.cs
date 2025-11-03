@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR;
 
@@ -54,8 +55,72 @@ public class VRInputManager : MonoBehaviour
 
     void Start()
     {
-        InitializeInputManager();
+        // 使用统一VR输入管理器
+        if (UnifiedVRInputManager.Instance != null)
+        {
+            // 订阅统一输入管理器的事件
+            UnifiedVRInputManager.Instance.OnInputModeChanged += OnInputModeChanged;
+            UnifiedVRInputManager.Instance.OnGrabChanged += OnGrabChanged;
+            UnifiedVRInputManager.Instance.OnTriggerPressed += OnTriggerPressed;
+            
+            Debug.Log("[VRInputManager] 已连接到统一VR输入管理器");
+        }
+        else
+        {
+            Debug.LogError("[VRInputManager] 统一VR输入管理器未找到！请确保场景中有UnifiedVRInputManager");
+            return;
+        }
+
+        // 查找必要组件
+        FindVRComponents();
+
+        // 延迟初始化以确保所有组件都已加载
+        StartCoroutine(DelayedInit());
     }
+
+    /// <summary>
+    /// 查找VR组件
+    /// </summary>
+    private void FindVRComponents()
+    {
+        // 查找VR相机装备
+        if (vrCameraRig == null)
+        {
+            vrCameraRig = FindObjectOfType<VRCameraRig>();
+        }
+
+        if (vrCameraRig == null)
+        {
+            Debug.LogError("[VRInputManager] VRCameraRig未找到！");
+            return;
+        }
+
+        // 获取相机控制器
+        if (cameraController == null && vrCameraRig != null)
+        {
+            cameraController = vrCameraRig.GetCameraController();
+        }
+
+        // 查找参数显示UI
+        if (parameterDisplay == null)
+        {
+            parameterDisplay = FindObjectOfType<VRParameterDisplay>();
+        }
+
+        Debug.Log("[VRInputManager] VR组件查找完成");
+    }
+
+    /// <summary>
+    /// 延迟初始化
+    /// </summary>
+    private IEnumerator DelayedInit()
+    {
+        yield return new WaitForSeconds(0.1f);
+        
+        isInitialized = true;
+        Debug.Log("[VRInputManager] 初始化完成");
+    }
+
 
     /// <summary>
     /// 初始化输入管理器
@@ -95,59 +160,13 @@ public class VRInputManager : MonoBehaviour
     /// <summary>
     /// 查找XR控制器
     /// </summary>
+    /// <summary>
+    /// 查找XR控制器 - 已弃用，使用统一VR输入管理器
+    /// </summary>
     private void FindXRControllers()
     {
-        // XR Interaction Toolkit 2.6.5+ 新方式
-        // 直接查找所有Controller组件
-        XRController[] controllers = FindObjectsOfType<XRController>();
-
-        if (controllers.Length == 0)
-        {
-            Debug.LogWarning("未找到XR控制器！尝试查找Action-based Controller...");
-            // 如果没有找到XRController，尝试查找其他控制器类型
-            var actionBasedControllers = FindObjectsOfType<UnityEngine.XR.Interaction.Toolkit.ActionBasedController>();
-            if (actionBasedControllers.Length > 0)
-            {
-                Debug.Log($"找到 {actionBasedControllers.Length} 个Action-based Controller");
-                // 由于Action-based Controller不是XRController类型，我们直接返回
-                return;
-            }
-        }
-
-        foreach (XRController controller in controllers)
-        {
-            // 在新版本中，检查是否是左手控制器
-            if (controller.name.ToLower().Contains("left") ||
-                (controller.transform.parent != null && controller.transform.parent.name.ToLower().Contains("left")))
-            {
-                leftController = controller;
-                Debug.Log("找到左手控制器: " + controller.name);
-            }
-            // 检查是否是右手控制器
-            else if (controller.name.ToLower().Contains("right") ||
-                     (controller.transform.parent != null && controller.transform.parent.name.ToLower().Contains("right")))
-            {
-                rightController = controller;
-                Debug.Log("找到右手控制器: " + controller.name);
-            }
-
-            // 如果无法通过名称判断，使用位置判断
-            else if (controller.transform.position.x < 0)
-            {
-                leftController = controller;
-                Debug.Log("通过位置找到左手控制器: " + controller.name);
-            }
-            else
-            {
-                rightController = controller;
-                Debug.Log("通过位置找到右手控制器: " + controller.name);
-            }
-        }
-
-        if (leftController == null || rightController == null)
-        {
-            Debug.LogError($"未找到完整的XR控制器！左手: {(leftController != null ? "找到" : "未找到")}, 右手: {(rightController != null ? "找到" : "未找到")}");
-        }
+        // 不再需要直接查找控制器，统一VR输入管理器处理所有输入
+        Debug.Log("[VRInputManager] 使用统一VR输入管理器，跳过直接控制器查找");
     }
 
     /// <summary>
@@ -174,21 +193,139 @@ public class VRInputManager : MonoBehaviour
     {
         if (!isInitialized) return;
 
-        // 更新按键状态
-        UpdateButtonStates();
+        // 不再需要处理输入，统一VR输入管理器会处理所有输入
+        // Update方法保留用于其他逻辑（如果有）
+    }
 
-        // 更新输入模式
-        UpdateInputMode();
+    /// <summary>
+    /// 统一输入管理器事件 - 输入模式变化
+    /// </summary>
+    /// <summary>
+    /// 统一输入管理器事件 - 输入模式变化
+    /// </summary>
+    private void OnInputModeChanged(UnifiedVRInputManager.InputMode newMode)
+    {
+        // 转换为旧的InputMode枚举
+        currentMode = (VRInputManager.InputMode)System.Enum.Parse(typeof(VRInputManager.InputMode), newMode.ToString());
+        
+        Debug.Log($"[VRInputManager] 输入模式切换到: {currentMode}");
+
+        // 通知参数显示UI更新（如果方法存在）
+        if (parameterDisplay != null)
+        {
+            // 尝试调用UpdateCurrentMode方法，如果不存在则跳过
+            var method = parameterDisplay.GetType().GetMethod("UpdateCurrentMode");
+            if (method != null)
+            {
+                method.Invoke(parameterDisplay, new object[] { currentMode });
+            }
+        }
+    }
+
+    /// <summary>
+    /// 统一输入管理器事件 - 抓取值变化
+    /// </summary>
+    private void OnGrabChanged(float leftValue, float rightValue)
+    {
+        if (!isInitialized) return;
+
+        // 更新抓取状态
+        leftGrabPressed = leftValue > 0.5f;
+        rightGrabPressed = rightValue > 0.5f;
 
         // 处理参数调节
-        HandleParameterAdjustment();
-
-        // 处理拍照
-        HandlePhotoCapture();
-
-        // 处理移动
-        HandleMovement();
+        HandleParameterAdjustment(leftValue, rightValue);
     }
+
+    /// <summary>
+    /// 统一输入管理器事件 - 扳机按下
+    /// </summary>
+    private void OnTriggerPressed()
+    {
+        if (!isInitialized) return;
+        HandlePhotoCapture();
+    }
+
+    /// <summary>
+    /// 处理参数调节
+    /// </summary>
+    /// <summary>
+    /// 处理参数调节
+    /// </summary>
+    private void HandleParameterAdjustment(float leftValue, float rightValue)
+    {
+        if (cameraController == null) return;
+
+        // 冷却时间检查
+        if (Time.time - lastParameterChangeTime < PARAMETER_CHANGE_COOLDOWN) return;
+
+        float delta = (rightValue - leftValue) * parameterSensitivity;
+        
+        if (Mathf.Abs(delta) < 0.01f) return; // 忽略微小变化
+
+        switch (currentMode)
+        {
+            case InputMode.Default:
+                // 调整焦段 - 更新滑块值
+                if (cameraController.focalLengthSlider != null)
+                {
+                    cameraController.focalLengthSlider.value = Mathf.Clamp(
+                        cameraController.focalLengthSlider.value + delta, 10f, 200f);
+                    cameraController.OnParameterChanged();
+                }
+                break;
+                
+            case InputMode.HoldA:
+                // 调整对焦距离 - 更新滑块值
+                if (cameraController.focusDistanceSlider != null)
+                {
+                    cameraController.focusDistanceSlider.value = Mathf.Max(0.1f, 
+                        cameraController.focusDistanceSlider.value + delta);
+                    cameraController.OnParameterChanged();
+                }
+                break;
+                
+            case InputMode.HoldB:
+                // 调整ISO - 更新滑块值
+                if (cameraController.isoSlider != null)
+                {
+                    cameraController.isoSlider.value = Mathf.Clamp(
+                        cameraController.isoSlider.value + delta * 100, 100, 6400);
+                    cameraController.OnParameterChanged();
+                }
+                break;
+                
+            case InputMode.HoldX:
+                // 调整光圈 - 更新滑块值
+                if (cameraController.apertureSlider != null)
+                {
+                    cameraController.apertureSlider.value = Mathf.Clamp(
+                        cameraController.apertureSlider.value + delta * 0.1f, 1.4f, 22f);
+                    cameraController.OnParameterChanged();
+                }
+                break;
+                
+            case InputMode.HoldY:
+                // 调整快门速度 - 更新滑块值
+                if (cameraController.shutterSlider != null)
+                {
+                    cameraController.shutterSlider.value = Mathf.Max(1/8000f, 
+                        cameraController.shutterSlider.value + delta * 0.01f);
+                    cameraController.OnParameterChanged();
+                }
+                break;
+        }
+
+        lastParameterChangeTime = Time.time;
+        
+        // 触发触觉反馈
+        if (UnifiedVRInputManager.Instance != null)
+        {
+            UnifiedVRInputManager.Instance.TriggerHapticFeedback(0.2f, 0.05f, true);
+        }
+    }
+
+
 
     /// <summary>
     /// 更新按键状态

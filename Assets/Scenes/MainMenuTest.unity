@@ -2657,6 +2657,7 @@ GameObject:
   - component: {fileID: 649949007}
   - component: {fileID: 649949006}
   - component: {fileID: 649949005}
+  - component: {fileID: 649949008}
   m_Layer: 0
   m_Name: XR Origin (XR Rig)
   m_TagString: Untagged
@@ -2710,6 +2711,32 @@ Transform:
   - {fileID: 878313562}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -180, z: 0}
+--- !u!143 &649949008
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 649949004}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Height: 2
+  m_Radius: 0.3
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!114 &650690594
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -35042,6 +35069,64 @@ MonoBehaviour:
   m_Offset: {x: 0, y: 0, z: 0.05}
   m_Size: {x: 0.08, y: 0.08, z: 0.1}
   m_FadeFactor: 1
+--- !u!1 &1257998670
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1257998672}
+  - component: {fileID: 1257998671}
+  m_Layer: 0
+  m_Name: InputManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1257998671
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1257998670}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c70ada21decd4e10b31bfdfb4a3cee9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  xrOrigin: {fileID: 649949004}
+  enableDebugLogs: 1
+  leftGrabAction: {fileID: 9176202654923993709, guid: 8a96461cc4f7a481394fa901e15c90e1,
+    type: 3}
+  rightGrabAction: {fileID: 0}
+  leftTriggerAction: {fileID: 0}
+  rightTriggerAction: {fileID: 0}
+  aButtonAction: {fileID: 0}
+  bButtonAction: {fileID: 0}
+  xButtonAction: {fileID: 0}
+  yButtonAction: {fileID: 0}
+  menuButtonAction: {fileID: 0}
+  leftThumbstickAction: {fileID: 0}
+  rightThumbstickAction: {fileID: 0}
+--- !u!4 &1257998672
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1257998670}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.10450825, y: 0.9438652, z: 4.2692275}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1261347525
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -38506,3 +38591,4 @@ SceneRoots:
   - {fileID: 95836265}
   - {fileID: 1172775027}
   - {fileID: 1143869870}
+  - {fileID: 1257998672}

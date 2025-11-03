@@ -47,10 +47,37 @@ public class VRExplorerController : MonoBehaviour
     private Vector2 leftThumbstick;
     private bool leftThumbstickClicked;
     private bool rightThumbstickClicked;
+    private bool isMoving = false;
+    private float menuButtonHoldTime = 0f;
 
     void Start()
     {
-        InitializeExplorer();
+        // 使用统一VR输入管理器
+        if (UnifiedVRInputManager.Instance != null)
+        {
+            // 订阅输入事件
+            UnifiedVRInputManager.Instance.OnLeftThumbstickMoved += OnLeftThumbstickMoved;
+            UnifiedVRInputManager.Instance.OnMenuButtonPressed += OnMenuButtonPressed;
+            UnifiedVRInputManager.Instance.OnMenuButtonReleased += OnMenuButtonReleased;
+            
+            Debug.Log("[VRExplorerController] 已连接到统一VR输入管理器");
+        }
+        else
+        {
+            Debug.LogWarning("[VRExplorerController] 统一VR输入管理器未找到，使用键盘调试模式");
+        }
+
+        // 查找必要组件
+        FindRequiredComponents();
+
+        // 初始化音频系统
+        InitializeAudio();
+
+        // 初始化移动系统
+        InitializeMovement();
+
+        // 显示欢迎信息
+        ShowInfo("欢迎来到博物馆！\n使用左手摇杆移动\n长按菜单键3秒返回主菜单");
     }
 
     /// <summary>
@@ -252,24 +279,123 @@ public class VRExplorerController : MonoBehaviour
     {
         if (!isInitialized) return;
 
-        // 更新输入状态
-        UpdateInput();
-
-        // 处理移动
+        // 处理VR移动（由统一输入管理器触发）
         HandleMovement();
 
-        // 处理转向
-        HandleRotation();
+        // 处理菜单键长按返回（统一输入管理器已处理，这里保留作为备份）
+        // HandleMenuReturn(); // 不再需要，统一输入管理器会处理
 
         // 应用重力
         ApplyGravity();
 
+        // 地面检查
+        CheckGround();
+
         // 移动角色
         MoveCharacter();
 
-        // 检查地面
-        CheckGround();
+        // 传统模式调试输入（仅在编辑器中）
+        #if UNITY_EDITOR
+        HandleDebugInput();
+        #endif
     }
+
+    /// <summary>
+    /// 统一输入管理器事件 - 左摇杆移动
+    /// </summary>
+    /// <summary>
+    /// 统一输入管理器事件 - 左摇杆移动
+    /// </summary>
+    private void OnLeftThumbstickMoved(Vector2 value)
+    {
+        leftThumbstick = value;
+        bool wasMoving = isMoving;
+        isMoving = value.magnitude > 0.1f;
+        
+        // 开始移动时播放音效
+        if (isMoving && !wasMoving && audioSource != null)
+        {
+            PlayMoveSound();
+        }
+    }
+
+    /// <summary>
+    /// 统一输入管理器事件 - 菜单键按下
+    /// </summary>
+    private void OnMenuButtonPressed()
+    {
+        menuButtonHoldTime = 0f;
+        Debug.Log("[VRExplorerController] 菜单键按下");
+    }
+
+    /// <summary>
+    /// 统一输入管理器事件 - 菜单键释放
+    /// </summary>
+    private void OnMenuButtonReleased()
+    {
+        menuButtonHoldTime = 0f;
+        Debug.Log("[VRExplorerController] 菜单键释放");
+    }
+
+    /// <summary>
+    /// 初始化移动系统
+    /// </summary>
+    private void InitializeMovement()
+    {
+        isMoving = false;
+        menuButtonHoldTime = 0f;
+        Debug.Log("[VRExplorerController] 移动系统初始化完成");
+    }
+
+    /// <summary>
+    /// 播放移动音效
+    /// </summary>
+    private void PlayMoveSound()
+    {
+        if (audioSource != null && moveSound != null)
+        {
+            audioSource.PlayOneShot(moveSound, 0.3f);
+        }
+    }
+
+    /// <summary>
+    /// 处理调试输入（仅在编辑器中）
+    /// </summary>
+    private void HandleDebugInput()
+    {
+        // 使用新Input System处理键盘调试
+        var keyboard = Keyboard.current;
+        if (keyboard != null)
+        {            // WASD移动调试
+            Vector2 moveInput = Vector2.zero;
+            if (keyboard.wKey.isPressed) moveInput.y = 1f;
+            if (keyboard.sKey.isPressed) moveInput.y = -1f;
+            if (keyboard.aKey.isPressed) moveInput.x = -1f;
+            if (keyboard.dKey.isPressed) moveInput.x = 1f;
+            
+            if (moveInput != Vector2.zero)
+            {
+                leftThumbstick = moveInput;
+                isMoving = true;
+            }
+            else
+            {
+                leftThumbstick = Vector2.zero;
+                isMoving = false;
+            }
+            
+            // ESC键返回主菜单
+            if (keyboard.escapeKey.wasPressedThisFrame)
+            {
+                if (VRSceneManager.Instance != null)
+                {
+                    VRSceneManager.Instance.LoadMainMenu();
+                }
+            }
+        }
+    }
+
+
 
     /// <summary>
     /// 更新输入状态

@@ -31,12 +31,6 @@ public class PlayerController : MonoBehaviour
         // 检测VR是否激活
         isVRActive = enableVRMode && XRSettings.isDeviceActive;
 
-        // 查找VR组件
-        if (isVRActive)
-        {
-            FindVRComponents();
-        }
-
         if (!isVRActive)
         {
             // 传统模式初始化
@@ -47,21 +41,67 @@ public class PlayerController : MonoBehaviour
             yaw = transform.localEulerAngles.y;
             pitch = transform.localEulerAngles.x;
         }
-
-        Debug.Log("玩家控制器初始化 - VR模式: " + (isVRActive ? "启用" : "禁用"));
+        else
+        {
+            // VR模式下，VR移动由VRExplorerController处理
+            Debug.Log("[PlayerController] VR模式已激活，移动功能由VRExplorerController处理");
+        }
     }
 
     void Update()
     {
         if (isVRActive)
         {
-            UpdateVRMovement();
+            // VR模式下，移动由VRExplorerController处理
+            return;
         }
-        else
+
+        // 传统模式处理
+        HandleTraditionalInput();
+    }
+
+    /// <summary>
+    /// 处理传统模式输入
+    /// </summary>
+    private void HandleTraditionalInput()
+    {
+        // 使用新Input System处理按键
+        Keyboard keyboard = Keyboard.current;
+        Mouse mouse = Mouse.current;
+        
+        if (keyboard != null && mouse != null)
         {
-            UpdateTraditionalMovement();
+            // WASD移动
+            Vector2 moveInput = new Vector2(
+                keyboard.dKey.isPressed ? 1f : (keyboard.aKey.isPressed ? -1f : 0f),
+                keyboard.wKey.isPressed ? 1f : (keyboard.sKey.isPressed ? -1f : 0f)
+            );
+            
+            if (moveInput.magnitude > 0.1f)
+            {
+                Vector3 move = transform.right * moveInput.x + transform.forward * moveInput.y;
+                controller.Move(move * moveSpeed * Time.deltaTime);
+            }
+            
+            // 鼠标视角控制
+            if (Input.GetMouseButton(0))
+            {
+                Vector2 mouseDelta = mouse.delta.ReadValue();
+                yaw += mouseDelta.x * mouseSensitivity;
+                pitch -= mouseDelta.y * mouseSensitivity;
+                pitch = Mathf.Clamp(pitch, -89f, 89f);
+                
+                transform.localEulerAngles = new Vector3(pitch, yaw, 0);
+            }
+            
+            // 快捷键
+            if (keyboard.spaceKey.wasPressedThisFrame && cameraController != null)
+            {
+                cameraController.CapturePhoto();
+            }
         }
     }
+
 
     /// <summary>
     /// 查找VR组件
