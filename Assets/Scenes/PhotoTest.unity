@@ -1095,6 +1095,21 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4573677526744699969, guid: fef0b163b69a046399fccc2f514e8876,
+        type: 3}
+      propertyPath: m_ClearFlags
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4680808216437979654, guid: fef0b163b69a046399fccc2f514e8876,
+        type: 3}
+      propertyPath: m_CameraType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4680808216437979654, guid: fef0b163b69a046399fccc2f514e8876,
+        type: 3}
+      propertyPath: m_RendererIndex
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6024955950656602181, guid: fef0b163b69a046399fccc2f514e8876,
         type: 3}
       propertyPath: m_AnchorMax.x
@@ -1522,7 +1537,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c70ada21decd4e10b31bfdfb4a3cee9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  xrOrigin: {fileID: 0}
+  xrOrigin: {fileID: 1540684925}
   enableDebugLogs: 1
   leftGrabAction: {fileID: 9176202654923993709, guid: 8a96461cc4f7a481394fa901e15c90e1,
     type: 3}

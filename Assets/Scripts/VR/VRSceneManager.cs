@@ -52,8 +52,8 @@ public class VRSceneManager : MonoBehaviour
 
     void Update()
     {
-        // 检测菜单键长按返回
-        HandleMenuButtonReturn();
+        // 不再直接处理输入，统一VR输入管理器会处理所有输入
+        // Update方法保留用于其他逻辑（如果有）
     }
 
     /// <summary>
@@ -89,58 +89,16 @@ public class VRSceneManager : MonoBehaviour
     /// <summary>
     /// 处理菜单键长按返回逻辑
     /// </summary>
+    /// <summary>
+    /// 处理菜单键返回 - 已弃用，使用统一VR输入管理器
+    /// </summary>
+    /// <summary>
+    /// 处理菜单键返回 - 已弃用，使用统一VR输入管理器
+    /// </summary>
     private void HandleMenuButtonReturn()
     {
-        // 只在非MainMenu场景处理返回逻辑
-        if (SceneManager.GetActiveScene().name == mainMenuSceneName || isTransitioning)
-            return;
-
-        // 检测菜单键状态（使用通用输入系统）
-        bool menuButtonCurrentState = Input.GetKeyDown(KeyCode.JoystickButton7) || // 菜单键通用按键
-                                     OVRInput.GetDown(OVRInput.Button.Start); // Meta Quest特定菜单键
-
-        bool menuButtonHeldState = Input.GetKey(KeyCode.JoystickButton7) ||
-                                   OVRInput.Get(OVRInput.Button.Start);
-
-        if (menuButtonCurrentState && !isMenuButtonPressed)
-        {
-            // 菜单键刚刚被按下
-            isMenuButtonPressed = true;
-            menuButtonHoldTime = 0f;
-
-            // 显示返回进度指示器
-            if (returnProgressImage != null)
-            {
-                returnProgressImage.gameObject.SetActive(true);
-                returnProgressImage.fillAmount = 0f;
-            }
-
-            Debug.Log("开始菜单键长按计时...");
-        }
-        else if (menuButtonHeldState && isMenuButtonPressed)
-        {
-            // 菜单键正在被按住
-            menuButtonHoldTime += Time.deltaTime;
-
-            // 更新进度指示器
-            if (returnProgressImage != null)
-            {
-                returnProgressImage.fillAmount = menuButtonHoldTime / menuHoldDuration;
-            }
-
-            // 检查是否达到长按时间
-            if (menuButtonHoldTime >= menuHoldDuration)
-            {
-                // 触发返回主菜单
-                StartCoroutine(ReturnToMainMenu());
-                ResetMenuButtonState();
-            }
-        }
-        else if (!menuButtonHeldState && isMenuButtonPressed)
-        {
-            // 菜单键被释放（未达到长按时间）
-            ResetMenuButtonState();
-        }
+        // 不再直接处理输入，统一VR输入管理器会处理
+        // 保留方法签名以避免编译错误
     }
 
     /// <summary>

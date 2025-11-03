@@ -28,12 +28,21 @@ public class VRCameraRig : MonoBehaviour
     public AudioClip focusSound; // 对焦音效
     public AudioClip parameterChangeSound; // 参数调节音效
 
+    [Header("UI设置")]
+    public bool followCameraModel = true; // UI是否跟随相机模型
+    public Transform defaultUIParent; // 默认UI父级（固定位置时使用）
+    public bool allowUIControl = false; // 是否允许脚本控制UI位置（完全禁用时保持Editor设置）
+
     // 私有变量
     private CameraController cameraController;
     private XRController rightController;
     private GameObject spawnedCameraModel;
     private AudioSource audioSource;
     private bool isInitialized = false;
+
+    // UI相关变量
+    private Canvas[] uiCanvases; // 相机相关的Canvas组件
+    private Transform[] originalUIParents; // UI原始父级
 
     void Start()
     {
@@ -45,36 +54,62 @@ public class VRCameraRig : MonoBehaviour
     /// </summary>
     private void InitializeVRCamera()
     {
-        Debug.Log("初始化VR相机系统...");
+        Debug.Log("[VRCameraRig] 初始化VR相机系统...");
 
         // 获取CameraController组件
         cameraController = GetComponent<CameraController>();
         if (cameraController == null)
         {
-            Debug.LogError("VRCameraRig需要CameraController组件！");
+            Debug.LogError("[VRCameraRig] 需要CameraController组件！");
             return;
         }
 
         // 初始化音频源
         InitializeAudioSource();
 
+        // 延迟查找控制器，等待XR系统完全加载
+        StartCoroutine(DelayedControllerInitialization());
+    }
+
+    /// <summary>
+    /// 延迟初始化控制器
+    /// </summary>
+    private System.Collections.IEnumerator DelayedControllerInitialization()
+    {
+        // 等待几帧让XR系统完全加载
+        for (int i = 0; i < 5; i++)
+        {
+            yield return null;
+        }
+
         // 查找右手控制器
         FindRightHandController();
 
-        // 设置相机附着点
-        SetupCameraAttachPoint();
+        // 如果找到控制器，设置其他组件
+        if (rightHandController != null)
+        {
+            // 设置相机附着点
+            SetupCameraAttachPoint();
 
-        // 创建相机模型
-        CreateCameraModel();
+            // 创建相机模型
+            CreateCameraModel();
 
-        // 配置相机物理属性
-        SetupCameraPhysics();
+            // 配置相机物理属性
+            SetupCameraPhysics();
 
-        // 集成现有相机系统
-        IntegrateExistingCameraSystem();
+            // 集成现有相机系统
+            IntegrateExistingCameraSystem();
 
-        isInitialized = true;
-        Debug.Log("VR相机系统初始化完成");
+            isInitialized = true;
+            Debug.Log("[VRCameraRig] VR相机系统初始化完成");
+
+            // 延迟设置UI跟随，确保相机模型已创建
+            StartCoroutine(DelayedUISetup());
+        }
+        else
+        {
+            Debug.LogError("[VRCameraRig] 控制器初始化失败，VR相机系统无法正常工作");
+        }
     }
 
     /// <summary>
@@ -91,25 +126,52 @@ public class VRCameraRig : MonoBehaviour
     /// <summary>
     /// 查找右手控制器
     /// </summary>
+    /// <summary>
+    /// 查找右手控制器
+    /// </summary>
+    /// <summary>
+    /// 查找右手控制器
+    /// </summary>
     private void FindRightHandController()
     {
-        // 查找XRController组件
-        XRController[] controllers = FindObjectsOfType<XRController>();
-        foreach (XRController controller in controllers)
+        // 如果已经在Inspector中指定了右手控制器，直接使用
+        if (rightHandController != null)
         {
-            if (controller.controllerNode == XRNode.RightHand)
-            {
-                rightController = controller;
-                rightHandController = controller.transform;
-                Debug.Log("找到右手控制器");
-                break;
-            }
+            Debug.Log("[VRCameraRig] 使用指定的右手控制器: " + rightHandController.name);
+            return;
         }
 
-        if (rightController == null)
+        // 首先尝试查找XR Controller
+        XRController[] controllers = FindObjectsOfType<XRController>();
+        
+        foreach (XRController controller in controllers)
         {
-            Debug.LogWarning("未找到右手控制器！尝试手动指定。");
+            if (controller.name.ToLower().Contains("right") ||
+                (controller.transform.parent != null && controller.transform.parent.name.ToLower().Contains("right")) ||
+                controller.transform.position.x > 0)
+            {
+                rightHandController = controller.transform;
+                rightController = controller;
+                Debug.Log("[VRCameraRig] 找到右手控制器: " + controller.name);
+                return;
+            }
         }
+        
+        // 如果没有找到XR Controller，尝试查找ActionBasedController
+        var actionBasedControllers = FindObjectsOfType<UnityEngine.XR.Interaction.Toolkit.ActionBasedController>();
+        foreach (var controller in actionBasedControllers)
+        {
+            if (controller.name.ToLower().Contains("right") ||
+                (controller.transform.parent != null && controller.transform.parent.name.ToLower().Contains("right")) ||
+                controller.transform.position.x > 0)
+            {
+                rightHandController = controller.transform;
+                Debug.Log("[VRCameraRig] 找到Action-based右手控制器: " + controller.name);
+                return;
+            }
+        }
+        
+        Debug.LogWarning("[VRCameraRig] 未找到右手控制器！尝试手动指定。");
     }
 
     /// <summary>
@@ -225,6 +287,195 @@ public class VRCameraRig : MonoBehaviour
 
         Debug.Log("现有相机系统集成完成");
     }
+
+    /// <summary>
+    /// 设置UI跟随模式
+    /// </summary>
+    private void SetupUIFollowing()
+    {
+        // 如果不允许UI控制，直接返回
+        if (!allowUIControl)
+        {
+            Debug.Log("[VRCameraRig] UI控制已禁用，保持Editor中的原始设置");
+            return;
+        }
+
+        if (cameraController == null) return;
+
+        // 查找相机Controller下的所有Canvas
+        uiCanvases = cameraController.GetComponentsInChildren<Canvas>(true);
+
+        if (uiCanvases.Length > 0)
+        {
+            originalUIParents = new Transform[uiCanvases.Length];
+
+            for (int i = 0; i < uiCanvases.Length; i++)
+            {
+                // 保存原始父级
+                originalUIParents[i] = uiCanvases[i].transform.parent;
+
+                // 只在开启跟随模式时调整UI，关闭时保持原始状态
+                if (followCameraModel)
+                {
+                    UpdateUIFollowing(uiCanvases[i].transform, i);
+                }
+            }
+
+            Debug.Log($"[VRCameraRig] 找到 {uiCanvases.Length} 个UI Canvas，跟随模式: {(followCameraModel ? "跟随相机模型" : "保持原始位置")}");
+        }
+        else
+        {
+            Debug.LogWarning("[VRCameraRig] 未找到任何UI Canvas");
+        }
+    }
+
+    /// <summary>
+    /// 更新单个UI的跟随状态
+    /// </summary>
+    /// <summary>
+    /// 更新单个UI的跟随状态
+    /// </summary>
+    private void UpdateUIFollowing(Transform uiTransform, int index)
+    {
+        if (followCameraModel)
+        {
+            // 跟随相机模型
+            if (spawnedCameraModel != null)
+            {
+                uiTransform.SetParent(spawnedCameraModel.transform);
+                Debug.Log($"[VRCameraRig] {uiTransform.name} 跟随相机模型");
+            }
+        }
+        else
+        {
+            // 关闭跟随模式时保持原始状态，不进行任何调整
+            Debug.Log($"[VRCameraRig] {uiTransform.name} 保持原始位置（关闭跟随模式）");
+        }
+    }
+
+    /// <summary>
+    /// 切换UI跟随模式（公共方法）
+    /// </summary>
+    public void ToggleUIFollowing()
+    {
+        followCameraModel = !followCameraModel;
+        RefreshUIFollowing();
+        
+        Debug.Log($"[VRCameraRig] UI跟随模式已切换为: {(followCameraModel ? "跟随相机模型" : "固定位置")}");
+    }
+
+    /// <summary>
+    /// 设置UI跟随模式
+    /// </summary>
+    /// <summary>
+    /// 设置UI跟随模式
+    /// </summary>
+    public void SetUIFollowing(bool followModel)
+    {
+        if (followCameraModel != followModel)
+        {
+            followCameraModel = followModel;
+            
+            // 只在开启跟随模式时才刷新UI
+            if (followCameraModel)
+            {
+                RefreshUIFollowing();
+            }
+            
+            Debug.Log($"[VRCameraRig] UI跟随模式设置为: {(followCameraModel ? "跟随相机模型" : "保持原始位置")}");
+        }
+    }
+
+    /// <summary>
+    /// 刷新所有UI的跟随状态
+    /// </summary>
+    private void RefreshUIFollowing()
+    {
+        // 如果不允许UI控制，直接返回
+        if (!allowUIControl) return;
+
+        if (uiCanvases == null || uiCanvases.Length == 0) return;
+
+        // 只在开启跟随模式时才进行调整
+        if (followCameraModel)
+        {
+            for (int i = 0; i < uiCanvases.Length; i++)
+            {
+                if (uiCanvases[i] != null)
+                {
+                    UpdateUIFollowing(uiCanvases[i].transform, i);
+                }
+            }
+        }
+        // 关闭跟随模式时不做任何操作，保持UI原始状态
+    }
+
+    /// <summary>
+    /// 获取当前UI跟随模式
+    /// </summary>
+    public bool GetUIFollowingMode()
+    {
+        return followCameraModel;
+    }
+
+    /// <summary>
+    /// 获取UI控制模式
+    /// </summary>
+    public bool GetUIControlMode()
+    {
+        return allowUIControl;
+    }
+
+    /// <summary>
+    /// 切换UI控制模式
+    /// </summary>
+    public void ToggleUIControl()
+    {
+        allowUIControl = !allowUIControl;
+
+        // 如果刚启用控制，需要重新设置UI
+        if (allowUIControl)
+        {
+            SetupUIFollowing();
+        }
+
+        Debug.Log($"[VRCameraRig] UI控制模式已切换为: {(allowUIControl ? "脚本控制" : "Editor控制")}");
+    }
+
+    /// <summary>
+    /// 设置UI控制模式
+    /// </summary>
+    public void SetUIControl(bool allowControl)
+    {
+        if (allowUIControl != allowControl)
+        {
+            allowUIControl = allowControl;
+
+            // 如果刚启用控制，需要重新设置UI
+            if (allowUIControl)
+            {
+                SetupUIFollowing();
+            }
+
+            Debug.Log($"[VRCameraRig] UI控制模式设置为: {(allowUIControl ? "脚本控制" : "Editor控制")}");
+        }
+    }
+
+    /// <summary>
+    /// 延迟设置UI跟随
+    /// </summary>
+    private System.Collections.IEnumerator DelayedUISetup()
+    {
+        // 等待一帧，确保所有组件都已初始化
+        yield return null;
+        
+        // 设置UI跟随
+        SetupUIFollowing();
+    }
+
+    
+
+
 
     /// <summary>
     /// 播放快门音效

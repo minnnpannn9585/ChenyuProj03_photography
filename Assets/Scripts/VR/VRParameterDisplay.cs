@@ -23,6 +23,7 @@ public class VRParameterDisplay : MonoBehaviour
     public Vector3 displayOffset = Vector3.zero; // 显示偏移
     public bool followCamera = true; // 是否跟随相机
     public float smoothFollowSpeed = 5f; // 平滑跟随速度
+    public bool allowPositionControl = false; // 是否允许脚本控制UI位置（关闭时保持Editor设置）
 
     [Header("样式设置")]
     public Color normalColor = Color.white; // 正常颜色
@@ -125,8 +126,8 @@ public class VRParameterDisplay : MonoBehaviour
         // 确保Canvas是World Space模式
         displayCanvas.renderMode = RenderMode.WorldSpace;
 
-        // 设置Canvas缩放（适合VR观看）
-        displayCanvas.transform.localScale = Vector3.one * 0.001f; // 1mm = 1单位
+        // 不强制设置缩放，保持用户在Editor中设置的原始状态
+        // 这样用户可以手动调整UI大小到合适的尺寸
     }
 
     /// <summary>
@@ -161,9 +162,9 @@ public class VRParameterDisplay : MonoBehaviour
     /// </summary>
     private void InitializeDisplayPosition()
     {
-        if (targetCamera == null) return;
+        if (targetCamera == null || !allowPositionControl) return;
 
-        // 设置初始位置
+        // 只有在允许位置控制时才设置初始位置
         UpdateDisplayPosition();
     }
 
@@ -185,8 +186,8 @@ public class VRParameterDisplay : MonoBehaviour
     {
         if (!isInitialized) return;
 
-        // 更新显示位置
-        if (followCamera)
+        // 只有在允许位置控制时才更新显示位置
+        if (allowPositionControl && followCamera)
         {
             UpdateDisplayPosition();
 
