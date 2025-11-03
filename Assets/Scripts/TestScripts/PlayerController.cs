@@ -84,13 +84,13 @@ public class PlayerController : MonoBehaviour
             }
             
             // 鼠标视角控制
-            if (Input.GetMouseButton(0))
+            if (mouse.leftButton.isPressed)
             {
                 Vector2 mouseDelta = mouse.delta.ReadValue();
                 yaw += mouseDelta.x * mouseSensitivity;
                 pitch -= mouseDelta.y * mouseSensitivity;
                 pitch = Mathf.Clamp(pitch, -89f, 89f);
-                
+
                 transform.localEulerAngles = new Vector3(pitch, yaw, 0);
             }
             

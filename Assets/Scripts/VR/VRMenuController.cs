@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.InputSystem;
 using TMPro;
 
 /// <summary>
@@ -360,13 +361,14 @@ public class VRMenuController : MonoBehaviour
         // 比如检测特定按键重置菜单等
 
         // 按R键重置菜单物体位置（调试用）
-        if (Input.GetKeyDown(KeyCode.R))
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard != null && keyboard.rKey.wasPressedThisFrame)
         {
             ResetMenuObjects();
         }
 
         // 按ESC键退出应用（调试用）
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
         {
             Debug.Log("退出应用请求");
             Application.Quit();
