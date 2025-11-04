@@ -142,10 +142,10 @@ public class GrabInteractive : MonoBehaviour
     // 调试信息显示
     void ShowDebugInfo()
     {
-        if (Input.GetKeyDown(debugKey))
-        {
-            Debug.Log($"物体 {gameObject.name} 抓取状态: {isGrabbed}");
-        }
+        // if (Input.GetKeyDown(debugKey))
+        // {
+        //     Debug.Log($"物体 {gameObject.name} 抓取状态: {isGrabbed}");
+        // }
     }
 
     void LoadTargetScene()

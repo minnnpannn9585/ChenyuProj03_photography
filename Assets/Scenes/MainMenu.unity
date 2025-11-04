@@ -43812,7 +43812,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a893fd79475db4c1cb32f42a51bb7d0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  targetSceneName: PhotoScene
+  targetSceneName: photoTest
   isGrabbed: 0
   debugKey: 32
   vrInputActions: {fileID: -944628639613478452, guid: 5ad73350a7b7f44298ba210b7c1216f1,
