@@ -15,6 +15,11 @@ public class GrabInteractive : MonoBehaviour
     [Header("Debug")]
     public bool isGrabbed = false;
 
+    [Header("UI Control")]
+    public Canvas infoCanvas; // 信息显示Canvas
+    public Vector3 originalPosition; // 初始位置
+    public Quaternion originalRotation; // 初始旋转
+
     [Header("Input Settings")]
     public KeyCode debugKey = KeyCode.Space; // 调试信息显示按键
     public InputActionAsset vrInputActions; // VR输入动作资源
@@ -23,8 +28,18 @@ public class GrabInteractive : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // 保存初始位置和旋转
+        originalPosition = transform.position;
+        originalRotation = transform.rotation;
+
         // 获取Grabbable组件
         grabbable = GetComponent<Grabbable>();
+
+        // 初始化Canvas状态（默认隐藏）
+        if (infoCanvas != null)
+        {
+            infoCanvas.gameObject.SetActive(false);
+        }
 
         // 初始化Input Action
         SetupInputActions();
@@ -122,6 +137,16 @@ public class GrabInteractive : MonoBehaviour
         {
             isGrabbed = currentlyGrabbed;
             Debug.Log($"物体 {gameObject.name} {(isGrabbed ? "被抓取" : "被释放")}");
+
+            // 状态变化时处理Canvas显示和位置重置
+            if (isGrabbed)
+            {
+                OnGrabbed();
+            }
+            else
+            {
+                OnReleased();
+            }
         }
     }
 
@@ -175,5 +200,54 @@ public class GrabInteractive : MonoBehaviour
         }
 
         Debug.Log("场景加载完成: " + targetSceneName);
+    }
+
+    // 物体被抓取时的处理
+    private void OnGrabbed()
+    {
+        Debug.Log($"物体 {gameObject.name} 被抓取，显示Canvas");
+
+        // 显示Canvas
+        if (infoCanvas != null)
+        {
+            infoCanvas.gameObject.SetActive(true);
+        }
+    }
+
+    // 物体被释放时的处理
+    private void OnReleased()
+    {
+        Debug.Log($"物体 {gameObject.name} 被释放，隐藏Canvas并重置位置");
+
+        // 隐藏Canvas
+        if (infoCanvas != null)
+        {
+            infoCanvas.gameObject.SetActive(false);
+        }
+
+        // 重置位置和旋转
+        ResetPosition();
+    }
+
+    // 重置物体到初始位置
+    private void ResetPosition()
+    {
+        // 取消父子关系
+        transform.SetParent(null);
+
+        // 重置物理状态
+        Rigidbody rb = GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.isKinematic = false;
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        // 重置位置和旋转
+        transform.position = originalPosition;
+        transform.rotation = originalRotation;
+
+        Debug.Log($"物体 {gameObject.name} 已重置到初始位置: {originalPosition}");
     }
 }
